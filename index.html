@@ -78,6 +78,14 @@
         .restart-btn:hover {
             background-color: #ff4b2b;
         }
+
+        .instructions {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            font-size: 18px;
+            color: #333;
+        }
     </style>
 </head>
 <body>
@@ -85,6 +93,7 @@
     <div class="game-container" id="gameContainer">
         <div class="player" id="player"></div>
         <div class="score-board" id="scoreBoard">Счёт: 0</div>
+        <div class="instructions">Используйте стрелки на клавиатуре, чтобы избегать падающих кругов!</div>
         <div class="game-over" id="gameOver">
             Игра окончена!<br>Ваш итоговый счёт: <span id="finalScore">0</span>
             <br>
@@ -101,10 +110,9 @@
 
         let playerX = 275;
         let score = 0;
-        let gameInterval;
-        let fallingInterval;
         let fallingSpeed = 3000;
         let isGameOver = false;
+        let objectsCount = 1; // количество падающих объектов
 
         function movePlayer(event) {
             if (isGameOver) return;
@@ -121,44 +129,54 @@
         function createFallingObject() {
             if (isGameOver) return;
 
-            const fallingObject = document.createElement('div');
-            fallingObject.classList.add('falling-object');
-            gameContainer.appendChild(fallingObject);
+            for (let i = 0; i < objectsCount; i++) {
+                const fallingObject = document.createElement('div');
+                fallingObject.classList.add('falling-object');
+                gameContainer.appendChild(fallingObject);
 
-            const randomX = Math.floor(Math.random() * (gameContainer.offsetWidth - 30));
-            fallingObject.style.left = `${randomX}px`;
-            fallingObject.style.top = `-30px`;
+                const randomX = Math.floor(Math.random() * (gameContainer.offsetWidth - 30));
+                fallingObject.style.left = `${randomX}px`;
+                fallingObject.style.top = `-30px`;
 
-            let fallingY = -30;
-            const fallingInterval = setInterval(() => {
-                if (isGameOver) {
-                    clearInterval(fallingInterval);
-                    return;
-                }
+                let fallingY = -30;
+                const fallingInterval = setInterval(() => {
+                    if (isGameOver) {
+                        clearInterval(fallingInterval);
+                        return;
+                    }
 
-                fallingY += 5;
-                fallingObject.style.top = `${fallingY}px`;
+                    fallingY += 5;
+                    fallingObject.style.top = `${fallingY}px`;
 
-                if (fallingY >= gameContainer.offsetHeight - 50 && fallingY <= gameContainer.offsetHeight && randomX > playerX - 30 && randomX < playerX + 50) {
-                    endGame();
-                }
+                    if (fallingY >= gameContainer.offsetHeight - 50 && fallingY <= gameContainer.offsetHeight && randomX > playerX - 30 && randomX < playerX + 50) {
+                        endGame();
+                    }
 
-                if (fallingY > gameContainer.offsetHeight) {
-                    fallingObject.remove();
-                    score++;
-                    scoreBoard.textContent = `Счёт: ${score}`;
-                }
-            }, 20);
+                    if (fallingY > gameContainer.offsetHeight) {
+                        fallingObject.remove();
+                        score++;
+                        scoreBoard.textContent = `Счёт: ${score}`;
+                    }
+                }, 20);
+            }
 
             setTimeout(() => {
                 createFallingObject();
             }, fallingSpeed);
         }
 
+        function increaseDifficulty() {
+            if (isGameOver) return;
+
+            objectsCount++; // увеличиваем количество объектов
+            fallingSpeed -= 200; // уменьшаем интервал появления объектов (ускорение)
+            if (fallingSpeed < 500) fallingSpeed = 500; // ограничение на минимальную скорость
+
+            setTimeout(increaseDifficulty, 3000); // каждые 3 секунды усложняем игру
+        }
+
         function endGame() {
             isGameOver = true;
-            clearInterval(gameInterval);
-            clearInterval(fallingInterval);
             gameOverScreen.style.display = 'block';
             finalScore.textContent = score;
         }
@@ -166,17 +184,21 @@
         function restartGame() {
             playerX = 275;
             score = 0;
+            objectsCount = 1;
+            fallingSpeed = 3000;
             isGameOver = false;
             gameOverScreen.style.display = 'none';
             scoreBoard.textContent = `Счёт: 0`;
 
             document.querySelectorAll('.falling-object').forEach(obj => obj.remove());
             createFallingObject();
+            increaseDifficulty(); // запускаем усложнение игры
         }
 
         window.addEventListener('keydown', movePlayer);
 
         createFallingObject();
+        increaseDifficulty(); // запускаем усложнение с начала игры
     </script>
 
 </body>
