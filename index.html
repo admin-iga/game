@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Игра: Поймай круг!</title>
+    <title>Игра: Избегай падающих объектов!</title>
     <style>
         body {
             margin: 0;
             padding: 0;
+            font-family: Arial, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #f0f0f0;
-            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom, #4facfe, #00f2fe);
+            overflow: hidden;
         }
 
         .game-container {
@@ -21,19 +22,27 @@
             width: 600px;
             height: 600px;
             background-color: #ffffff;
-            border: 5px solid #333;
             border-radius: 10px;
             overflow: hidden;
+            border: 5px solid #333;
         }
 
-        .circle {
+        .player {
             position: absolute;
             width: 50px;
             height: 50px;
-            background-color: #FF416C;
+            background-color: #ff416c;
+            border-radius: 5px;
+            bottom: 10px;
+            left: 275px;
+        }
+
+        .falling-object {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-color: #ffb142;
             border-radius: 50%;
-            cursor: pointer;
-            transition: transform 0.3s ease;
         }
 
         .score-board {
@@ -51,13 +60,13 @@
             left: 50%;
             transform: translate(-50%, -50%);
             font-size: 32px;
-            color: #FF416C;
+            color: #ff416c;
             text-align: center;
         }
 
         .restart-btn {
             padding: 10px 20px;
-            background-color: #FF416C;
+            background-color: #ff416c;
             color: white;
             border: none;
             border-radius: 5px;
@@ -67,14 +76,14 @@
         }
 
         .restart-btn:hover {
-            background-color: #FF4B2B;
+            background-color: #ff4b2b;
         }
     </style>
 </head>
 <body>
 
-    <div class="game-container">
-        <div class="circle" id="circle"></div>
+    <div class="game-container" id="gameContainer">
+        <div class="player" id="player"></div>
         <div class="score-board" id="scoreBoard">Счёт: 0</div>
         <div class="game-over" id="gameOver">
             Игра окончена!<br>Ваш итоговый счёт: <span id="finalScore">0</span>
@@ -84,53 +93,90 @@
     </div>
 
     <script>
-        let score = 0;
-        let gameOver = false;
-        const circle = document.getElementById('circle');
+        const player = document.getElementById('player');
+        const gameContainer = document.getElementById('gameContainer');
         const scoreBoard = document.getElementById('scoreBoard');
         const gameOverScreen = document.getElementById('gameOver');
         const finalScore = document.getElementById('finalScore');
-        const gameContainer = document.querySelector('.game-container');
 
-        function randomPosition() {
-            const x = Math.random() * (gameContainer.offsetWidth - 50);
-            const y = Math.random() * (gameContainer.offsetHeight - 50);
-            return { x, y };
+        let playerX = 275;
+        let score = 0;
+        let gameInterval;
+        let fallingInterval;
+        let fallingSpeed = 3000;
+        let isGameOver = false;
+
+        function movePlayer(event) {
+            if (isGameOver) return;
+
+            if (event.key === 'ArrowLeft' && playerX > 0) {
+                playerX -= 30;
+            }
+            if (event.key === 'ArrowRight' && playerX < gameContainer.offsetWidth - 50) {
+                playerX += 30;
+            }
+            player.style.left = `${playerX}px`;
         }
 
-        function moveCircle() {
-            if (gameOver) return;
-            const { x, y } = randomPosition();
-            circle.style.transform = `translate(${x}px, ${y}px)`;
-        }
+        function createFallingObject() {
+            if (isGameOver) return;
 
-        function updateScore() {
-            score++;
-            scoreBoard.textContent = `Счёт: ${score}`;
-            moveCircle();
+            const fallingObject = document.createElement('div');
+            fallingObject.classList.add('falling-object');
+            gameContainer.appendChild(fallingObject);
+
+            const randomX = Math.floor(Math.random() * (gameContainer.offsetWidth - 30));
+            fallingObject.style.left = `${randomX}px`;
+            fallingObject.style.top = `-30px`;
+
+            let fallingY = -30;
+            const fallingInterval = setInterval(() => {
+                if (isGameOver) {
+                    clearInterval(fallingInterval);
+                    return;
+                }
+
+                fallingY += 5;
+                fallingObject.style.top = `${fallingY}px`;
+
+                if (fallingY >= gameContainer.offsetHeight - 50 && fallingY <= gameContainer.offsetHeight && randomX > playerX - 30 && randomX < playerX + 50) {
+                    endGame();
+                }
+
+                if (fallingY > gameContainer.offsetHeight) {
+                    fallingObject.remove();
+                    score++;
+                    scoreBoard.textContent = `Счёт: ${score}`;
+                }
+            }, 20);
+
+            setTimeout(() => {
+                createFallingObject();
+            }, fallingSpeed);
         }
 
         function endGame() {
-            gameOver = true;
-            finalScore.textContent = score;
+            isGameOver = true;
+            clearInterval(gameInterval);
+            clearInterval(fallingInterval);
             gameOverScreen.style.display = 'block';
-            circle.style.display = 'none';
+            finalScore.textContent = score;
         }
 
         function restartGame() {
+            playerX = 275;
             score = 0;
-            gameOver = false;
-            scoreBoard.textContent = `Счёт: 0`;
+            isGameOver = false;
             gameOverScreen.style.display = 'none';
-            circle.style.display = 'block';
-            moveCircle();
+            scoreBoard.textContent = `Счёт: 0`;
+
+            document.querySelectorAll('.falling-object').forEach(obj => obj.remove());
+            createFallingObject();
         }
 
-        circle.addEventListener('click', updateScore);
+        window.addEventListener('keydown', movePlayer);
 
-        setTimeout(endGame, 15000); // Игра заканчивается через 15 секунд
-
-        moveCircle(); // Первое перемещение круга
+        createFallingObject();
     </script>
 
 </body>
