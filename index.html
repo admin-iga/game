@@ -3,213 +3,135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Улучшенная страница с функциями</title>
+    <title>Игра: Поймай круг!</title>
     <style>
-        /* Основные стили */
         body {
             margin: 0;
             padding: 0;
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #FF416C, #FF4B2B);
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            color: white;
-            transition: background 0.5s;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
         }
 
-        /* Контейнер */
-        .container {
-            text-align: center;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-            width: 80%;
-            max-width: 600px;
+        .game-container {
+            position: relative;
+            width: 600px;
+            height: 600px;
+            background-color: #ffffff;
+            border: 5px solid #333;
+            border-radius: 10px;
+            overflow: hidden;
         }
 
-        h1 {
-            font-size: 48px;
-            margin-bottom: 20px;
-            letter-spacing: 2px;
-            transition: color 0.5s;
-        }
-
-        p {
-            font-size: 20px;
-            margin-bottom: 30px;
-            transition: all 0.5s;
-        }
-
-        /* Кнопка */
-        .button {
-            background-color: #fff;
-            border: none;
-            padding: 15px 30px;
-            color: #FF4B2B;
-            font-size: 18px;
-            border-radius: 50px;
+        .circle {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: #FF416C;
+            border-radius: 50%;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: transform 0.3s ease;
         }
 
-        .button:hover {
-            background-color: #FF4B2B;
-            color: white;
-            transform: scale(1.1);
-        }
-
-        /* Таймер */
-        #timer {
+        .score-board {
+            position: absolute;
+            top: 10px;
+            left: 10px;
             font-size: 24px;
-            margin: 20px 0;
+            color: #333;
         }
 
-        /* Темная тема */
-        .dark-mode {
-            background: linear-gradient(135deg, #141E30, #243B55);
+        .game-over {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 32px;
+            color: #FF416C;
+            text-align: center;
         }
 
-        .dark-mode h1, .dark-mode p {
-            color: #EAEAEA;
-        }
-
-        .dark-mode .button {
-            color: #141E30;
-        }
-
-        .color-picker {
+        .restart-btn {
+            padding: 10px 20px;
+            background-color: #FF416C;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
             margin-top: 20px;
         }
 
-        /* Форма */
-        .input-style {
-            padding: 10px;
-            margin: 10px 0;
-            width: 80%;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-
-        /* Анимация текста */
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
-        }
-
-        .blinking-text {
-            animation: blink 1.5s infinite;
-        }
-
-        /* Сообщение внизу */
-        footer {
-            position: absolute;
-            bottom: 10px;
-            width: 100%;
-            text-align: center;
-            font-size: 14px;
-            color: #ccc;
+        .restart-btn:hover {
+            background-color: #FF4B2B;
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>Мультифункциональная страничка</h1>
-        <p>Нажми кнопку, чтобы начать взаимодействие.</p>
-
-        <!-- Кнопка приветствия -->
-        <button class="button" onclick="showGreeting()">Приветствие</button>
-        <p id="greeting"></p>
-
-        <!-- Таймер -->
-        <div id="timer"></div>
-        <button class="button" onclick="startTimer()">Запустить таймер</button>
-        <button class="button" onclick="stopTimer()">Остановить таймер</button>
-
-        <!-- Смена фона -->
-        <button class="button" onclick="changeBackground()">Сменить фон</button>
-
-        <!-- Темная тема -->
-        <button class="button" onclick="toggleDarkMode()">Темная тема</button>
-
-        <!-- Изменение текста -->
-        <p>Выбери цвет текста:</p>
-        <input type="color" id="colorPicker" class="color-picker" onchange="changeTextColor()">
-
-        <!-- Форма обратной связи -->
-        <h2>Форма обратной связи</h2>
-        <input type="text" class="input-style" placeholder="Введите ваше имя" id="nameInput">
-        <input type="email" class="input-style" placeholder="Введите ваш email" id="emailInput">
-        <button class="button" onclick="submitForm()">Отправить</button>
-        <p id="formMessage"></p>
-
-        <!-- Анимация текста -->
-        <p class="blinking-text">Это анимированный текст!</p>
+    <div class="game-container">
+        <div class="circle" id="circle"></div>
+        <div class="score-board" id="scoreBoard">Счёт: 0</div>
+        <div class="game-over" id="gameOver">
+            Игра окончена!<br>Ваш итоговый счёт: <span id="finalScore">0</span>
+            <br>
+            <button class="restart-btn" onclick="restartGame()">Начать заново</button>
+        </div>
     </div>
 
-    <footer>
-        &copy; 2024 - Пример красивой и функциональной страницы
-    </footer>
-
     <script>
-        /* 1. Функция приветствия */
-        function showGreeting() {
-            const greetingText = document.getElementById('greeting');
-            greetingText.textContent = 'Привет от JavaScript! ❤️';
+        let score = 0;
+        let gameOver = false;
+        const circle = document.getElementById('circle');
+        const scoreBoard = document.getElementById('scoreBoard');
+        const gameOverScreen = document.getElementById('gameOver');
+        const finalScore = document.getElementById('finalScore');
+        const gameContainer = document.querySelector('.game-container');
+
+        function randomPosition() {
+            const x = Math.random() * (gameContainer.offsetWidth - 50);
+            const y = Math.random() * (gameContainer.offsetHeight - 50);
+            return { x, y };
         }
 
-        /* 2. Таймер */
-        let timer;
-        let count = 0;
-
-        function startTimer() {
-            const timerElement = document.getElementById('timer');
-            timer = setInterval(() => {
-                count++;
-                timerElement.textContent = `Прошло секунд: ${count}`;
-            }, 1000);
+        function moveCircle() {
+            if (gameOver) return;
+            const { x, y } = randomPosition();
+            circle.style.transform = `translate(${x}px, ${y}px)`;
         }
 
-        function stopTimer() {
-            clearInterval(timer);
+        function updateScore() {
+            score++;
+            scoreBoard.textContent = `Счёт: ${score}`;
+            moveCircle();
         }
 
-        /* 3. Смена фона */
-        function changeBackground() {
-            const colors = ['#FF416C', '#FF4B2B', '#4B79A1', '#283E51', '#141E30'];
-            const randomColor = colors[Math.floor(Math.random() * colors.length)];
-            document.body.style.background = `linear-gradient(135deg, ${randomColor}, #FF4B2B)`;
+        function endGame() {
+            gameOver = true;
+            finalScore.textContent = score;
+            gameOverScreen.style.display = 'block';
+            circle.style.display = 'none';
         }
 
-        /* 4. Темная тема */
-        function toggleDarkMode() {
-            document.body.classList.toggle('dark-mode');
+        function restartGame() {
+            score = 0;
+            gameOver = false;
+            scoreBoard.textContent = `Счёт: 0`;
+            gameOverScreen.style.display = 'none';
+            circle.style.display = 'block';
+            moveCircle();
         }
 
-        /* 5. Смена цвета текста */
-        function changeTextColor() {
-            const colorPicker = document.getElementById('colorPicker').value;
-            document.querySelector('h1').style.color = colorPicker;
-        }
+        circle.addEventListener('click', updateScore);
 
-        /* 6. Форма обратной связи */
-        function submitForm() {
-            const name = document.getElementById('nameInput').value;
-            const email = document.getElementById('emailInput').value;
-            const message = document.getElementById('formMessage');
+        setTimeout(endGame, 15000); // Игра заканчивается через 15 секунд
 
-            if (name && email) {
-                message.textContent = `Спасибо за обратную связь, ${name}!`;
-                message.style.color = 'lightgreen';
-            } else {
-                message.textContent = 'Пожалуйста, заполните все поля.';
-                message.style.color = 'red';
-            }
-        }
+        moveCircle(); // Первое перемещение круга
     </script>
+
 </body>
 </html>
